@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
+    <script>
+        /************************************************
+         * תאריך יצירת הקוד: 28/01/2026
+         * שעת יצירת הקוד: 14:45
+         * גרסה: אופטימיזציה ל-3 טורים ושם קובץ דינמי
+         ************************************************/
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>רשימת שמות לתפילה</title>
@@ -44,7 +51,6 @@
         .download-btn:hover { background-color: #0056b3; }
         .download-btn:disabled { background-color: #ccc; cursor: wait; }
 
-        /* אזור ה-PDF */
         #content-to-print {
             display: none;
             width: 190mm;
@@ -52,21 +58,109 @@
             background: white;
             color: black;
             direction: rtl;
-            position: relative;
-        }
-
-        /* חותמת זמן עברית בתוך ה-PDF */
-        .timestamp {
-            position: absolute;
-            top: 5mm;
-            left: 10mm;
-            font-size: 10px;
-            color: #555;
-            text-align: left;
-            direction: rtl;
         }
 
         .pdf-header {
+            text-align: center;
+            font-size: 18px; 
+            font-weight: bold;
+            margin-bottom: 8px;
+            border-bottom: 1.5px solid #000;
+            padding-bottom: 4px;
+        }
+
+        .columns-wrapper {
+            column-count: 3;
+            column-gap: 15px;
+            column-rule: 0.1px solid #f0f0f0;
+        }
+
+        .name-row {
+            font-size: 13px;
+            padding: 4px 0;
+            margin-bottom: 4px; 
+            break-inside: avoid;
+            white-space: nowrap;
+            text-align: right;
+            border-bottom: 0.1px solid #fafafa;
+        }
+
+        .update-info { font-size: 11px; color: #999; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <h2 style="margin-top:0;">הפקת רשימת שמות</h2>
+        <p id="status-text">מתחבר לנתונים...</p>
+        <button id="download-pdf" class="download-btn" disabled>הורד PDF לתפילה</button>
+        <p class="update-info">גרסה: 28/01/2026 14:45</p>
+    </div>
+
+    <div id="content-to-print">
+        <div class="pdf-header">שמות לתפילה משפחת בלוי</div>
+        <div id="names-columns" class="columns-wrapper"></div>
+    </div>
+
+    <script>
+        const JSON_URL = 'https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLi_DEsby5FPjCNOfuzeVMG8sZDd7PgwnAJ_u28ALecdAVR1WE-IjyNJFV0a8niL7QKFbisHVY3ew1xiakkH5iK3X2QzxSR8trsTh99FDG2seNFjbZ9-WCofi91MyyHY9A07ebThJ-JL_T1ZbtcxkJhPF_1tEqyEm_Suewy-55m4RpNb96DfOjBvAljFfGCERfZkjK4bvxACe3dwJf2zwOHMx0qRJrByRSu5z69dCQXB5mcYSl2EOM-MjNAhe7VVtQc3dR2zB8QFbUv6U0-2DILTHFuaOw&lib=MKvnEb8OzXBIaQxFnaeDEdJl9ogoAk9d_';
+
+        async function loadData() {
+            try {
+                const response = await fetch(JSON_URL);
+                const data = await response.json();
+                
+                if (data && data.length > 0) {
+                    const listContainer = document.getElementById('names-columns');
+                    
+                    data.forEach(row => {
+                        if (row[0] && row[0].toString().trim() !== "") {
+                            const div = document.createElement('div');
+                            div.className = 'name-row';
+                            // פתרון סופי לרווחים בעברית
+                            div.innerText = row[0].toString().replace(/\s+/g, '\u00A0');
+                            listContainer.appendChild(div);
+                        }
+                    });
+
+                    document.getElementById('status-text').innerText = "הנתונים מוכנים להורדה";
+                    document.getElementById('download-pdf').disabled = false;
+                }
+            } catch (e) {
+                document.getElementById('status-text').innerText = "שגיאה בטעינת הנתונים";
+            }
+        }
+
+        document.getElementById('download-pdf').addEventListener('click', () => {
+            const element = document.getElementById('content-to-print');
+            element.style.display = 'block';
+
+            const now = new Date();
+            const dateStr = now.getDate() + '-' + (now.getMonth() + 1) + '-' + now.getFullYear();
+            const timeStr = now.getHours() + '-' + now.getMinutes();
+            const fileName = `שמות לתפילה משפחת בלוי ${dateStr} ${timeStr}.pdf`;
+
+            const opt = {
+                margin:       [10, 10, 10, 10], 
+                filename:     fileName,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { 
+                    scale: 3, 
+                    useCORS: true,
+                    letterRendering: false
+                },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                element.style.display = 'none';
+            });
+        });
+
+        loadData();
+    </script>
+</body>
+</html>
             text-align: center;
             font-size: 18px; 
             font-weight: bold;
