@@ -1,73 +1,166 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
+    <script>
+        /************************************************
+         * תאריך יצירת הקוד: 28/01/2026
+         * שעת יצירת הקוד: 14:45
+         * גרסה: אופטימיזציה ל-3 טורים ושם קובץ דינמי
+         ************************************************/
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>הורדת רשימת שמות ל-PDF</title>
+    <title>רשימת שמות לתפילה</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; padding: 40px; text-align: center; }
-        
-        /* עיצוב כפתור ההורדה */
+        @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;700&display=swap');
+
+        body { 
+            font-family: 'Assistant', sans-serif; 
+            background-color: #f0f2f5; 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh;
+        }
+
+        .main-container {
+            text-align: center;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 350px;
+        }
+
         .download-btn {
-            background-color: #1a73e8;
+            background-color: #007bff;
             color: white;
             border: none;
-            padding: 15px 30px;
-            border-radius: 8px;
+            padding: 12px 30px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 18px;
+            font-size: 17px;
             font-weight: bold;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: background 0.3s;
+            transition: 0.2s;
         }
-        .download-btn:hover { background-color: #1557b0; }
-        .download-btn:disabled { background-color: #ccc; cursor: not-allowed; }
 
-        /* הסתרת התוכן מהאתר עצמו */
+        .download-btn:hover { background-color: #0056b3; }
+        .download-btn:disabled { background-color: #ccc; cursor: wait; }
+
         #content-to-print {
-            display: none; 
+            display: none;
+            width: 190mm;
+            padding: 5mm 10mm;
             background: white;
-            padding: 10mm;
-            width: 190mm; /* רוחב דף A4 פחות שוליים */
-            margin: auto;
+            color: black;
+            direction: rtl;
         }
 
-        /* הגדרת הטורים עבור ה-PDF */
-        .names-container {
-            column-count: 3; /* חלוקה ל-3 טורים */
-            column-gap: 20px;
-            column-rule: 1px solid #eee; /* קו מפריד דק בין הטורים */
-            text-align: right;
+        .pdf-header {
+            text-align: center;
+            font-size: 18px; 
+            font-weight: bold;
+            margin-bottom: 8px;
+            border-bottom: 1.5px solid #000;
+            padding-bottom: 4px;
         }
 
-        .name-item {
+        .columns-wrapper {
+            column-count: 3;
+            column-gap: 15px;
+            column-rule: 0.1px solid #f0f0f0;
+        }
+
+        .name-row {
+            font-size: 13px;
             padding: 4px 0;
-            font-size: 14px;
-            border-bottom: 0.5px solid #f0f0f0;
-            break-inside: avoid; /* מונע משם להיחתך בין טורים */
+            margin-bottom: 4px; 
+            break-inside: avoid;
+            white-space: nowrap;
+            text-align: right;
+            border-bottom: 0.1px solid #fafafa;
         }
 
-        h2 { border-bottom: 2px solid #1a73e8; padding-bottom: 10px; margin-bottom: 20px; }
+        .update-info { font-size: 11px; color: #999; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <h1>הפקת רשימת שמות</h1>
-    <p>הנתונים נטענים מהגיליון באופן אוטומטי.</p>
-    
-    <div id="loader">טוען נתונים...</div>
-    
-    <button id="download-pdf" class="download-btn" disabled>הורד רשימה כ-PDF (3 טורים)</button>
+    <div class="main-container">
+        <h2 style="margin-top:0;">הפקת רשימת שמות</h2>
+        <p id="status-text">מתחבר לנתונים...</p>
+        <button id="download-pdf" class="download-btn" disabled>הורד PDF לתפילה</button>
+        <p class="update-info">גרסה: 28/01/2026 14:45</p>
+    </div>
 
     <div id="content-to-print">
-        <h2 style="text-align: center;">רשימת שמות מעודכנת</h2>
-        <div id="names-list" class="names-container"></div>
+        <div class="pdf-header">שמות לתפילה משפחת בלוי</div>
+        <div id="names-columns" class="columns-wrapper"></div>
     </div>
 
     <script>
         const JSON_URL = 'https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLi_DEsby5FPjCNOfuzeVMG8sZDd7PgwnAJ_u28ALecdAVR1WE-IjyNJFV0a8niL7QKFbisHVY3ew1xiakkH5iK3X2QzxSR8trsTh99FDG2seNFjbZ9-WCofi91MyyHY9A07ebThJ-JL_T1ZbtcxkJhPF_1tEqyEm_Suewy-55m4RpNb96DfOjBvAljFfGCERfZkjK4bvxACe3dwJf2zwOHMx0qRJrByRSu5z69dCQXB5mcYSl2EOM-MjNAhe7VVtQc3dR2zB8QFbUv6U0-2DILTHFuaOw&lib=MKvnEb8OzXBIaQxFnaeDEdJl9ogoAk9d_';
+
+        async function loadData() {
+            try {
+                const response = await fetch(JSON_URL);
+                const data = await response.json();
+                
+                if (data && data.length > 0) {
+                    const listContainer = document.getElementById('names-columns');
+                    
+                    data.forEach(row => {
+                        if (row[0] && row[0].toString().trim() !== "") {
+                            const div = document.createElement('div');
+                            div.className = 'name-row';
+                            // פתרון סופי לרווחים בעברית
+                            div.innerText = row[0].toString().replace(/\s+/g, '\u00A0');
+                            listContainer.appendChild(div);
+                        }
+                    });
+
+                    document.getElementById('status-text').innerText = "הנתונים מוכנים להורדה";
+                    document.getElementById('download-pdf').disabled = false;
+                }
+            } catch (e) {
+                document.getElementById('status-text').innerText = "שגיאה בטעינת הנתונים";
+            }
+        }
+
+        document.getElementById('download-pdf').addEventListener('click', () => {
+            const element = document.getElementById('content-to-print');
+            element.style.display = 'block';
+
+            const now = new Date();
+            const dateStr = now.getDate() + '-' + (now.getMonth() + 1) + '-' + now.getFullYear();
+            const timeStr = now.getHours() + '-' + now.getMinutes();
+            const fileName = `שמות לתפילה משפחת בלוי ${dateStr} ${timeStr}.pdf`;
+
+            const opt = {
+                margin:       [10, 10, 10, 10], 
+                filename:     fileName,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { 
+                    scale: 3, 
+                    useCORS: true,
+                    letterRendering: false
+                },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                element.style.display = 'none';
+            });
+        });
+
+        loadData();
+    </script>
+</body>
+</html>
 
         async function loadData() {
             try {
