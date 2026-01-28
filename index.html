@@ -3,58 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>תצוגה והורדת PDF</title>
+    <title>הורדת רשימת שמות ל-PDF</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .controls { margin-bottom: 20px; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; padding: 40px; text-align: center; }
         
         /* עיצוב כפתור ההורדה */
         .download-btn {
             background-color: #1a73e8;
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 15px 30px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             transition: background 0.3s;
         }
         .download-btn:hover { background-color: #1557b0; }
+        .download-btn:disabled { background-color: #ccc; cursor: not-allowed; }
 
-        .table-container { width: 100%; max-width: 600px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 12px; text-align: right; border-bottom: 1px solid #ddd; }
-        th { background-color: #4285f4; color: white; }
-        #loader { margin-top: 50px; }
+        /* הסתרת התוכן מהאתר עצמו */
+        #content-to-print {
+            display: none; 
+            background: white;
+            padding: 10mm;
+            width: 190mm; /* רוחב דף A4 פחות שוליים */
+            margin: auto;
+        }
+
+        /* הגדרת הטורים עבור ה-PDF */
+        .names-container {
+            column-count: 3; /* חלוקה ל-3 טורים */
+            column-gap: 20px;
+            column-rule: 1px solid #eee; /* קו מפריד דק בין הטורים */
+            text-align: right;
+        }
+
+        .name-item {
+            padding: 4px 0;
+            font-size: 14px;
+            border-bottom: 0.5px solid #f0f0f0;
+            break-inside: avoid; /* מונע משם להיחתך בין טורים */
+        }
+
+        h2 { border-bottom: 2px solid #1a73e8; padding-bottom: 10px; margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
-    <h1>ניהול נתונים מ-Sheets</h1>
+    <h1>הפקת רשימת שמות</h1>
+    <p>הנתונים נטענים מהגיליון באופן אוטומטי.</p>
     
-    <div class="controls">
-        <button id="download-pdf" class="download-btn" style="display:none;">הורד כ-PDF</button>
-    </div>
-
     <div id="loader">טוען נתונים...</div>
+    
+    <button id="download-pdf" class="download-btn" disabled>הורד רשימה כ-PDF (3 טורים)</button>
 
-    <div class="table-container" id="content-to-print" style="display:none;">
-        <h2 style="text-align: center;">דו"ח שמות</h2>
-        <table id="data-table">
-            <thead>
-                <tr id="table-header">
-                    <th>שם</th>
-                </tr>
-            </thead>
-            <tbody id="table-body"></tbody>
-        </table>
+    <div id="content-to-print">
+        <h2 style="text-align: center;">רשימת שמות מעודכנת</h2>
+        <div id="names-list" class="names-container"></div>
     </div>
 
     <script>
-        // הלינק המעודכן ששלחת
         const JSON_URL = 'https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLi_DEsby5FPjCNOfuzeVMG8sZDd7PgwnAJ_u28ALecdAVR1WE-IjyNJFV0a8niL7QKFbisHVY3ew1xiakkH5iK3X2QzxSR8trsTh99FDG2seNFjbZ9-WCofi91MyyHY9A07ebThJ-JL_T1ZbtcxkJhPF_1tEqyEm_Suewy-55m4RpNb96DfOjBvAljFfGCERfZkjK4bvxACe3dwJf2zwOHMx0qRJrByRSu5z69dCQXB5mcYSl2EOM-MjNAhe7VVtQc3dR2zB8QFbUv6U0-2DILTHFuaOw&lib=MKvnEb8OzXBIaQxFnaeDEdJl9ogoAk9d_';
 
         async function loadData() {
@@ -62,95 +74,52 @@
                 const response = await fetch(JSON_URL);
                 const data = await response.json();
                 
-                // בדיקה אם הנתונים הגיעו כמערך
                 if (data && data.length > 0) { 
-                    renderTable(data); 
+                    renderList(data); 
                 } else {
-                    document.getElementById('loader').innerText = 'לא נמצאו נתונים בגיליון.';
+                    document.getElementById('loader').innerText = 'לא נמצאו נתונים.';
                 }
             } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('loader').innerText = 'שגיאה בטעינה. וודא שהפריסה בגוגל מוגדרת ל-Anyone.';
+                document.getElementById('loader').innerText = 'שגיאה בטעינה.';
             }
         }
 
-        function renderTable(data) {
-            const bodyContainer = document.getElementById('table-body');
+        function renderList(data) {
+            const listContainer = document.getElementById('names-list');
+            listContainer.innerHTML = "";
 
-            // ניקוי הטבלה לפני הוספה
-            bodyContainer.innerHTML = "";
-
-            // מעבר על השורות (דילוג על שורת הכותרת אם היא קיימת ב-A1)
-            data.forEach((row, index) => {
-                // אם התא הראשון בשורה לא ריק
+            data.forEach((row) => {
                 if (row[0] && row[0].toString().trim() !== "") {
-                    const tr = document.createElement('tr');
-                    const td = document.createElement('td');
-                    td.innerText = row[0];
-                    tr.appendChild(td);
-                    bodyContainer.appendChild(tr);
+                    const div = document.createElement('div');
+                    div.className = 'name-item';
+                    div.innerText = row[0];
+                    listContainer.appendChild(div);
                 }
             });
 
-            // הצגת הטבלה והסתרת הטוען
             document.getElementById('loader').style.display = 'none';
-            document.getElementById('content-to-print').style.display = 'block';
-            document.getElementById('download-pdf').style.display = 'inline-block';
+            const btn = document.getElementById('download-pdf');
+            btn.disabled = false;
         }
 
-        // פונקציית הורדת ה-PDF
         document.getElementById('download-pdf').addEventListener('click', () => {
             const element = document.getElementById('content-to-print');
+            
+            // הצגה זמנית לצורך הלכידה
+            element.style.display = 'block';
+
             const opt = {
-                margin:       10,
-                filename:     'names_report.pdf',
+                margin:       [15, 10, 15, 10], // שוליים למעלה, ימין, למטה, שמאל
+                filename:     'names_3_columns.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
+                html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            html2pdf().set(opt).from(element).save();
-        });
-
-        // הפעלת הטעינה
-        loadData();
-    </script>
-</body>
-</html>
-            keys.forEach(key => {
-                const th = document.createElement('th');
-                th.innerText = key;
-                headerRow.appendChild(th);
+            html2pdf().set(opt).from(element).save().then(() => {
+                // הסתרה מחדש לאחר ההורדה
+                element.style.display = 'none';
             });
-
-            data.forEach(item => {
-                const tr = document.createElement('tr');
-                keys.forEach(key => {
-                    const td = document.createElement('td');
-                    td.innerText = item[key] || "";
-                    tr.appendChild(td);
-                });
-                bodyContainer.appendChild(tr);
-            });
-
-            document.getElementById('loader').style.display = 'none';
-            document.getElementById('content-to-print').style.display = 'block';
-            document.getElementById('download-pdf').style.display = 'inline-block';
-        }
-
-        // פונקציית הורדת ה-PDF
-        document.getElementById('download-pdf').addEventListener('click', () => {
-            const element = document.getElementById('content-to-print');
-            const opt = {
-                margin:       10,
-                filename:     'my_data_report.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            // הפעלת הייצוא
-            html2pdf().set(opt).from(element).save();
         });
 
         loadData();
