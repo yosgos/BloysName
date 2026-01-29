@@ -3,259 +3,356 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>רשימת שמות לתפילה</title>
+    <title>רשימת שמות לתפילה - משפחת בלוי</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&family=Frank+Ruhl+Libre:wght@700&display=swap');
+
+        :root {
+            --primary-color: #1a2a3a;
+            --accent-color: #c5a059;
+            --bg-color: #f8f9fa;
+            --white: #ffffff;
+        }
 
         body { 
             font-family: 'Assistant', sans-serif; 
-            background-color: #f0f2f5; 
+            background: radial-gradient(circle at center, #ffffff 0%, #e9ecef 100%);
             margin: 0; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
             justify-content: center; 
-            height: 100vh;
+            min-height: 100vh;
+            color: var(--primary-color);
         }
 
         .main-container {
             text-align: center;
-            background: white;
-            padding: 25px;
+            background: var(--white);
+            padding: 50px 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 450px;
+            border: 1px solid rgba(197, 160, 89, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-container::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 6px;
+            background: linear-gradient(to left, var(--accent-color), var(--primary-color));
+        }
+
+        .icon-box {
+            font-size: 60px;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
+
+        h2 {
+            margin: 10px 0 5px 0;
+            font-weight: 700;
+            color: var(--primary-color);
+            letter-spacing: -0.5px;
+        }
+
+        h3 {
+            margin: 0 0 30px 0;
+            font-weight: 300;
+            color: #5a6a7a;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #status-text {
+            background: #f1f3f5;
+            padding: 10px 20px;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            max-width: 350px;
+            display: inline-block;
+            margin-bottom: 30px;
+            font-size: 15px;
+            color: #495057;
         }
 
         .download-btn {
-            background-color: #007bff;
-            color: white;
+            background: var(--primary-color);
+            color: var(--white);
             border: none;
-            padding: 12px 30px;
-            border-radius: 6px;
+            padding: 16px 40px;
+            border-radius: 12px;
             cursor: pointer;
-            font-size: 17px;
-            font-weight: bold;
-            transition: 0.2s;
+            font-size: 18px;
+            font-weight: 600;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
-        .download-btn:hover { background-color: #0056b3; }
-        .download-btn:disabled { background-color: #ccc; cursor: wait; }
+        .download-btn:hover:not(:disabled) { 
+            background: var(--accent-color);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(197, 160, 89, 0.3);
+        }
 
-        /* אזור ה-PDF */
+        .download-btn:disabled { 
+            background: #adb5bd; 
+            cursor: not-allowed;
+        }
+
+        .update-info { 
+            font-size: 12px; 
+            color: #adb5bd; 
+            margin-top: 25px; 
+        }
+
+        /* PDF Styles */
         #content-to-print {
             display: none;
-            width: 190mm;
-            padding: 5mm 10mm;
+            width: 195mm; 
             background: white;
             color: black;
             direction: rtl;
-            position: relative;
+            box-sizing: border-box;
+            margin: 0 auto;
         }
 
-        /* חותמת זמן עברית בתוך ה-PDF */
+        .pdf-inner {
+            width: 100%;
+            padding: 2mm;
+            box-sizing: border-box;
+        }
+
         .timestamp {
-            position: absolute;
-            top: 5mm;
-            left: 10mm;
-            font-size: 10px;
+            font-size: 11px;
             color: #555;
-            text-align: left;
-            direction: rtl;
+            text-align: right; 
+            margin-bottom: 10px;
+            font-family: 'Assistant', sans-serif;
+            font-weight: 600;
         }
 
-        .pdf-header {
+        .pdf-header-container {
+            border: none;
+            padding: 10px 0;
+            margin-bottom: 25px;
             text-align: center;
-            font-size: 18px; 
-            font-weight: bold;
-            margin-bottom: 8px;
-            border-bottom: 1.5px solid #000;
-            padding-bottom: 4px;
-            margin-top: 10px;
+            border-bottom: 1.5px solid #1a2a3a;
+        }
+
+        .pdf-header-title {
+            font-family: 'Frank Ruhl Libre', serif;
+            font-size: 34px;
+            color: #1a2a3a;
+            margin: 0;
+            line-height: 1.2;
+            letter-spacing: 4px;
+        }
+
+        .header-gap {
+            margin: 0 15px;
+        }
+
+        .pdf-header-subtitle {
+            font-family: 'Assistant', sans-serif;
+            font-size: 16px;
+            color: #c5a059;
+            margin-top: 8px;
+            font-weight: 600;
+            letter-spacing: 2px;
         }
 
         .columns-wrapper {
             column-count: 3;
-            column-gap: 15px;
-            column-rule: 0.1px solid #f0f0f0;
+            column-gap: 25px; 
+            column-rule: 1px solid #eeeeee;
+            width: 100%;
         }
 
         .name-row {
-            font-size: 13px;
-            padding: 4px 0;
-            margin-bottom: 4px; 
+            font-size: 14px; 
+            padding: 5px 0;
             break-inside: avoid;
-            white-space: nowrap;
-            text-align: right;
-            border-bottom: 0.1px solid #fafafa;
+            display: flex;
+            align-items: center;
+            border-bottom: 0.5px solid #f5f5f5;
+            color: #222;
+            overflow: hidden;
+            white-space: nowrap; 
+            text-overflow: clip;
+            line-height: 1.2;
+            letter-spacing: 0.2px; /* Slight spacing improvement */
         }
 
-        .update-info { font-size: 11px; color: #999; margin-top: 10px; }
+        .name-row::before {
+            content: "•";
+            color: #c5a059;
+            margin-left: 10px; 
+            font-size: 16px; 
+            flex-shrink: 0;
+        }
+
+        .loader {
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
     </style>
 </head>
 <body>
 
     <div class="main-container">
-        <h2 style="margin-top:0;">הפקת רשימת שמות</h2>
-        <p id="status-text">מתחבר לנתונים...</p>
-        <button id="download-pdf" class="download-btn" disabled>הורד PDF לתפילה</button>
-        <p class="update-info">גרסה: 28/01/2026 15:30</p>
+        <div class="icon-box">📜</div>
+        <h2>שמות לתפילה</h2>
+        <h3>משפחת בלוי</h3>
+        
+        <div id="status-text">מתחבר למסד הנתונים...</div>
+        
+        <button id="download-pdf" class="download-btn" disabled>
+            <span>הורד רשימת שמות</span>
+        </button>
+        
+        <p id="version-date" class="update-info"></p>
     </div>
 
+    <!-- אזור ה-PDF -->
     <div id="content-to-print">
-        <div id="pdf-timestamp" class="timestamp"></div>
-        <div class="pdf-header">שמות לתפילה משפחת בלוי</div>
-        <div id="names-columns" class="columns-wrapper"></div>
+        <div class="pdf-inner">
+            <div id="pdf-timestamp" class="timestamp"></div>
+            
+            <div class="pdf-header-container">
+                <h1 class="pdf-header-title">שמות<span class="header-gap"></span>לתפילה</h1>
+                <div class="pdf-header-subtitle">משפחת בלוי</div>
+            </div>
+
+            <div id="names-columns" class="columns-wrapper"></div>
+        </div>
     </div>
 
     <script>
         const JSON_URL = 'https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLi_DEsby5FPjCNOfuzeVMG8sZDd7PgwnAJ_u28ALecdAVR1WE-IjyNJFV0a8niL7QKFbisHVY3ew1xiakkH5iK3X2QzxSR8trsTh99FDG2seNFjbZ9-WCofi91MyyHY9A07ebThJ-JL_T1ZbtcxkJhPF_1tEqyEm_Suewy-55m4RpNb96DfOjBvAljFfGCERfZkjK4bvxACe3dwJf2zwOHMx0qRJrByRSu5z69dCQXB5mcYSl2EOM-MjNAhe7VVtQc3dR2zB8QFbUv6U0-2DILTHFuaOw&lib=MKvnEb8OzXBIaQxFnaeDEdJl9ogoAk9d_';
 
+        function getGematria(num) {
+            if (num <= 0) return "";
+            const letters = [
+                {v: 400, l: 'ת'}, {v: 300, l: 'ש'}, {v: 200, l: 'ר'}, {v: 100, l: 'ק'},
+                {v: 90, l: 'צ'}, {v: 80, l: 'פ'}, {v: 70, l: 'ע'}, {v: 60, l: 'ס'},
+                {v: 50, l: 'נ'}, {v: 40, l: 'מ'}, {v: 30, l: 'ל'}, {v: 20, l: 'כ'},
+                {v: 10, l: 'י'}, {v: 9, l: 'ט'}, {v: 8, l: 'ח'}, {v: 7, l: 'ז'},
+                {v: 6, l: 'ו'}, {v: 5, l: 'ה'}, {v: 4, l: 'ד'}, {v: 3, l: 'ג'},
+                {v: 2, l: 'ב'}, {v: 1, l: 'א'}
+            ];
+            if (num === 15) return 'טו';
+            if (num === 16) return 'טז';
+            let result = "";
+            let remainder = num;
+            for (let item of letters) {
+                while (remainder >= item.v) {
+                    result += item.l;
+                    remainder -= item.v;
+                }
+            }
+            if (result.length === 1) return result + "'";
+            return result.slice(0, -1) + '"' + result.slice(-1);
+        }
+
         async function loadData() {
+            const statusEl = document.getElementById('status-text');
+            const btnEl = document.getElementById('download-pdf');
+            const listContainer = document.getElementById('names-columns');
+            const versionEl = document.getElementById('version-date');
+
             try {
                 const response = await fetch(JSON_URL);
                 const data = await response.json();
                 
                 if (data && data.length > 0) {
-                    const listContainer = document.getElementById('names-columns');
+                    listContainer.innerHTML = '';
+                    let count = 0;
                     data.forEach(row => {
-                        if (row[0] && row[0].toString().trim() !== "") {
+                        const name = row[0]?.toString().trim();
+                        if (name && name !== "שם") {
                             const div = document.createElement('div');
                             div.className = 'name-row';
-                            div.innerText = row[0].toString().replace(/\s+/g, '\u00A0');
+                            // Replace regular spaces with non-breaking spaces for PDF rendering
+                            div.innerHTML = name.replace(/\s/g, '&nbsp;'); 
                             listContainer.appendChild(div);
+                            count++;
                         }
                     });
-                    document.getElementById('status-text').innerText = "הנתונים מוכנים להורדה";
-                    document.getElementById('download-pdf').disabled = false;
+                    statusEl.innerHTML = `נמצאו <b>${count}</b> שמות ברשימה המעודכנת`;
+                    versionEl.innerText = `עודכן לאחרונה: ${new Date().toLocaleDateString('he-IL')}`;
+                    btnEl.disabled = false;
                 }
             } catch (e) {
-                document.getElementById('status-text').innerText = "שגיאה בטעינת הנתונים";
+                statusEl.innerText = "שגיאה בחיבור לנתונים";
             }
         }
 
-        document.getElementById('download-pdf').addEventListener('click', () => {
+        document.getElementById('download-pdf').addEventListener('click', async function() {
+            const btn = this;
             const element = document.getElementById('content-to-print');
+            const timestampEl = document.getElementById('pdf-timestamp');
             
-            // תאריך עברי וזמן
-            const now = new Date();
-            const hebrewDate = new Intl.DateTimeFormat('he-u-ca-hebrew', {dateStyle: 'full'}).format(now);
-            const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-            
-            document.getElementById('pdf-timestamp').innerText = hebrewDate + ' | ' + timeStr;
+            btn.disabled = true;
+            btn.innerHTML = '<div class="loader"></div> מכין קובץ...';
 
-            element.style.display = 'block';
-
-            const opt = {
-                margin:       [10, 10, 10, 10], 
-                filename:     'BloysName.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 3, useCORS: true, letterRendering: false },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            html2pdf().set(opt).from(element).save().then(() => {
-                element.style.display = 'none';
-            });
-        });
-
-        loadData();
-    </script>
-</body>
-</html>
-        }
-
-        .columns-wrapper {
-            column-count: 3;
-            column-gap: 15px;
-            column-rule: 0.1px solid #f0f0f0;
-        }
-
-        .name-row {
-            font-size: 13px;
-            padding: 4px 0;
-            margin-bottom: 4px; 
-            break-inside: avoid;
-            white-space: nowrap;
-            text-align: right;
-            border-bottom: 0.1px solid #fafafa;
-        }
-
-        .update-info { font-size: 11px; color: #999; margin-top: 10px; }
-    </style>
-</head>
-<body>
-
-    <div class="main-container">
-        <h2 style="margin-top:0;">הפקת רשימת שמות</h2>
-        <p id="status-text">מתחבר לנתונים...</p>
-        <button id="download-pdf" class="download-btn" disabled>הורד PDF לתפילה</button>
-        <p class="update-info">גרסה: 28/01/2026 14:45</p>
-    </div>
-
-    <div id="content-to-print">
-        <div class="pdf-header">שמות לתפילה משפחת בלוי</div>
-        <div id="names-columns" class="columns-wrapper"></div>
-    </div>
-
-    <script>
-        const JSON_URL = 'https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLi_DEsby5FPjCNOfuzeVMG8sZDd7PgwnAJ_u28ALecdAVR1WE-IjyNJFV0a8niL7QKFbisHVY3ew1xiakkH5iK3X2QzxSR8trsTh99FDG2seNFjbZ9-WCofi91MyyHY9A07ebThJ-JL_T1ZbtcxkJhPF_1tEqyEm_Suewy-55m4RpNb96DfOjBvAljFfGCERfZkjK4bvxACe3dwJf2zwOHMx0qRJrByRSu5z69dCQXB5mcYSl2EOM-MjNAhe7VVtQc3dR2zB8QFbUv6U0-2DILTHFuaOw&lib=MKvnEb8OzXBIaQxFnaeDEdJl9ogoAk9d_';
-
-        async function loadData() {
             try {
-                const response = await fetch(JSON_URL);
-                const data = await response.json();
+                const now = new Date();
+                const formatter = new Intl.DateTimeFormat('he-u-ca-hebrew', {
+                    year: 'numeric', month: 'long', day: 'numeric'
+                });
+                const parts = formatter.formatToParts(now);
+                const dayVal = parseInt(parts.find(p => p.type === 'day').value);
+                const monthName = parts.find(p => p.type === 'month').value;
+                const yearVal = parseInt(parts.find(p => p.type === 'year').value);
                 
-                if (data && data.length > 0) {
-                    const listContainer = document.getElementById('names-columns');
-                    
-                    data.forEach(row => {
-                        if (row[0] && row[0].toString().trim() !== "") {
-                            const div = document.createElement('div');
-                            div.className = 'name-row';
-                            // פתרון סופי לרווחים בעברית
-                            div.innerText = row[0].toString().replace(/\s+/g, '\u00A0');
-                            listContainer.appendChild(div);
-                        }
-                    });
-
-                    document.getElementById('status-text').innerText = "הנתונים מוכנים להורדה";
-                    document.getElementById('download-pdf').disabled = false;
-                }
+                // Using non-breaking spaces for the Hebrew date string
+                timestampEl.innerHTML = getGematria(dayVal) + '&nbsp;ב' + monthName + '&nbsp;' + getGematria(yearVal % 1000);
             } catch (e) {
-                document.getElementById('status-text').innerText = "שגיאה בטעינת הנתונים";
+                timestampEl.innerText = new Date().toLocaleDateString('he-IL');
             }
-        }
 
-        document.getElementById('download-pdf').addEventListener('click', () => {
-            const element = document.getElementById('content-to-print');
             element.style.display = 'block';
-
-            const now = new Date();
-            const dateStr = now.getDate() + '-' + (now.getMonth() + 1) + '-' + now.getFullYear();
-            const timeStr = now.getHours() + '-' + now.getMinutes();
-            const fileName = `שמות לתפילה משפחת בלוי ${dateStr} ${timeStr}.pdf`;
-
+            
             const opt = {
-                margin:       [10, 10, 10, 10], 
-                filename:     fileName,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { 
+                margin: [6, 6, 6, 6], 
+                filename: 'רשימת_תפילה_משפחת_בלוי.pdf',
+                image: { type: 'jpeg', quality: 1 },
+                html2canvas: { 
                     scale: 3, 
-                    useCORS: true,
-                    letterRendering: false
+                    useCORS: true, 
+                    letterRendering: true, 
+                    backgroundColor: '#ffffff'
                 },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            html2pdf().set(opt).from(element).save().then(() => {
+            try {
+                await html2pdf().set(opt).from(element).save();
+            } finally {
                 element.style.display = 'none';
-            });
+                btn.disabled = false;
+                btn.innerHTML = '<span>הורד רשימת שמות</span>';
+            }
         });
 
-        loadData();
+        window.onload = loadData;
     </script>
 </body>
 </html>
